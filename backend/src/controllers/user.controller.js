@@ -1,9 +1,12 @@
 import httpStatus from "http-status";
 import { User } from "../models/user.model.js";
-import bcrypt, { hash } from "bcrypt"
+import bcrypt from "bcryptjs";
+
 
 import crypto from "crypto"
 import { Meeting } from "../models/meeting.model.js";
+
+
 const login = async (req, res) => {
 
     const { username, password } = req.body;
@@ -19,7 +22,7 @@ const login = async (req, res) => {
         }
 
 
-        let isPasswordCorrect = await bcrypt.compare(password, user.password)
+        let isPasswordCorrect = await bcryptjs.compare(password, user.password)
 
         if (isPasswordCorrect) {
             let token = crypto.randomBytes(20).toString("hex");
@@ -47,7 +50,14 @@ const register = async (req, res) => {
             return res.status(httpStatus.FOUND).json({ message: "User already exists" });
         }
 
-        const hashedPassword = await bcrypt.hash(password, 10);
+           // Define the number of salt rounds
+
+           const saltRounds = 10;
+
+
+           // Hash the password
+   
+           const hashedPassword = await bcrypt.hash(password, saltRounds)
 
         const newUser = new User({
             name: name,
