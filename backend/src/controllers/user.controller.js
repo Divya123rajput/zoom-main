@@ -1,43 +1,64 @@
 import httpStatus from "http-status";
 import { User } from "../models/user.model.js";
-import bcrypt from "bcryptjs";
-
+import bcryptjs from "bcryptjs"
 
 import crypto from "crypto"
 import { Meeting } from "../models/meeting.model.js";
-
 
 const login = async (req, res) => {
 
     const { username, password } = req.body;
 
+
     if (!username || !password) {
-        return res.status(400).json({ message: "Please Provide" })
+
+        return res.status(400).json({ message: "Please Provide username and password" });
+
     }
+
 
     try {
+
         const user = await User.findOne({ username });
+
         if (!user) {
-            return res.status(httpStatus.NOT_FOUND).json({ message: "User Not Found" })
+
+            return res.status(httpStatus.NOT_FOUND).json({ message: "User  Not Found" });
+
         }
 
 
-        let isPasswordCorrect = await bcryptjs.compare(password, user.password)
+        // Compare the provided password with the hashed password
+
+        const isPasswordCorrect = await bcryptjs.compare(password, user.password);
+
 
         if (isPasswordCorrect) {
-            let token = crypto.randomBytes(20).toString("hex");
+
+            // Generate a token (you might want to use JWT instead)
+
+            const token = crypto.randomBytes(20).toString("hex");
 
             user.token = token;
+
             await user.save();
-            return res.status(httpStatus.OK).json({ token: token })
+
+            return res.status(httpStatus.OK).json({ token: token });
+
         } else {
-            return res.status(httpStatus.UNAUTHORIZED).json({ message: "Invalid Username or password" })
+
+            return res.status(httpStatus.UNAUTHORIZED).json({ message: "Invalid Username or password" });
+
         }
 
+
     } catch (e) {
-        return res.status(500).json({ message: `Something went wrong ${e}` })
+
+        return res.status(500).json({ message: `Something went wrong: ${e.message}` });
+
     }
-}
+
+};
 
 
 const register = async (req, res) => {
@@ -50,14 +71,7 @@ const register = async (req, res) => {
             return res.status(httpStatus.FOUND).json({ message: "User already exists" });
         }
 
-           // Define the number of salt rounds
-
-           const saltRounds = 10;
-
-
-           // Hash the password
-   
-           const hashedPassword = await bcrypt.hash(password, saltRounds)
+        const hashedPassword = await bcryptjs.hash(password, 10);
 
         const newUser = new User({
             name: name,
